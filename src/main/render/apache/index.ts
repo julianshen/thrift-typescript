@@ -25,6 +25,7 @@ import {
 
 import {
     renderIncludes as _renderIncludes,
+    renderOpenTelemetryImports,
     renderThriftImports,
     statementsUseInt64,
     statementsUseThrift,
@@ -55,6 +56,8 @@ export function renderImports(
     if (statementsUseInt64(statements)) {
         includes.unshift(renderInt64Import())
     }
+
+    includes.push(renderOpenTelemetryImports())
 
     return includes
 }

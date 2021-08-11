@@ -144,6 +144,21 @@ export function renderThriftImports(thriftLib: string): ts.ImportDeclaration {
 }
 
 /**
+ * import * as opentelmetry from '@opentelemetry/api';
+ */
+export function renderOpenTelemetryImports(): ts.ImportDeclaration {
+    return ts.createImportDeclaration(
+        undefined,
+        undefined,
+        ts.createImportClause(
+            undefined,
+            ts.createNamespaceImport(ts.createIdentifier('opentelemetry')),
+        ),
+        ts.createLiteral('@opentelemetry/api'),
+    )
+}
+
+/**
  * Given a hash of included files this will return a list of import statements.
  *
  * @param currentPath The path of the file performing imports. Import paths are

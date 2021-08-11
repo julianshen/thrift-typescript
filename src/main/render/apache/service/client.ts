@@ -72,6 +72,14 @@ export function renderClient(
         createProtocolType(),
     )
 
+    const tracer: ts.PropertyDeclaration = createPublicProperty(
+        'tracer',
+        ts.createTypeReferenceNode(
+            ts.createIdentifier('opentelemetry.Tracer'),
+            undefined,
+        ),
+    )
+
     /**
      * constructor(output: TTransport, protocol: { new (trans: TTransport): TProtocol }) {
      *   this._seqid = 0;
@@ -106,6 +114,15 @@ export function renderClient(
             createAssignmentStatement(
                 ts.createIdentifier('this.protocol'),
                 ts.createIdentifier('protocol'),
+            ),
+            // opentelemetry.trace.getTracer('')
+            createAssignmentStatement(
+                ts.createIdentifier('this.tracer'),
+                ts.createCall(
+                    ts.createIdentifier('opentelemetry.trace.getTracer'),
+                    undefined,
+                    [ts.createStringLiteral(node.name.value)],
+                ),
             ),
         ], // body
     )
@@ -190,6 +207,7 @@ export function renderClient(
             reqs,
             output,
             protocol,
+            tracer,
             ctor,
             incrementSeqIdMethod,
             ...baseMethods,
@@ -256,6 +274,19 @@ function createBaseMethodForDefinition(
                         ts.createIdentifier('this.incrementSeqId'),
                         undefined,
                         [],
+                    ),
+                ),
+                // const span:opentelemetry.Span = this.tracer.startSpan("");
+                createConstStatement(
+                    ts.createIdentifier('span'),
+                    ts.createTypeReferenceNode(
+                        ts.createIdentifier('opentelemetry.Span'),
+                        undefined,
+                    ),
+                    ts.createCall(
+                        ts.createIdentifier('this.tracer.startSpan'),
+                        undefined,
+                        [ts.createStringLiteral(def.name.value)],
                     ),
                 ),
                 // return new Promise<type>((resolve, reject) => { ... })
@@ -328,6 +359,16 @@ function createBaseMethodForDefinition(
                                                         ),
                                                     ],
                                                     true,
+                                                ),
+                                            ),
+                                            // span.end()
+                                            ts.createExpressionStatement(
+                                                ts.createCall(
+                                                    ts.createIdentifier(
+                                                        'span.end',
+                                                    ),
+                                                    undefined,
+                                                    [],
                                                 ),
                                             ),
                                         ],
